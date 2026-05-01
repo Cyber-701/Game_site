@@ -2,23 +2,26 @@
   "version": 2,
   "builds": [
     {
-      "src": "config/wsgi.py",
+      "src": "api/index.py",
       "use": "@vercel/python",
-      "config": { 
-        "maxLambdaSize": "15mb", 
+      "config": {
+        "maxLambdaSize": "15mb",
         "runtime": "python3.9"
       }
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/static/(.*)",
-      "dest": "/staticfiles/$1"
+      "dest": "/static/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "config/wsgi.py"
+      "dest": "/api/index.py"
     }
-  ],
-  "buildCommand": "python manage.py collectstatic --noinput"
+  ]
 }
