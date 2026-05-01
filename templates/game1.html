@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="uz">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Shakllar Olami — Rangli Raundlar</title>
+    <!-- Canvas Confetti kutubxonasi -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap');
+
+        * {
+            user-select: none;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: #0f172a;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(244, 63, 94, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(56, 189, 248, 0.15) 0%, transparent 40%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            color: white;
+        }
+
+        .game-container {
+            width: 95%;
+            max-width: 900px;
+            padding: 10px;
+        }
+
+        .main-panel {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 40px;
+            padding: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(135deg, #fb7185 0%, #a855f7 50%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            margin-top: 5px;
+            font-size: 0.9rem;
+        }
+
+        .stats-bar {
+            margin: 15px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .counter {
+            background: rgba(56, 189, 248, 0.1);
+            padding: 8px 25px;
+            border-radius: 20px;
+            font-weight: bold;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #38bdf8;
+            font-size: 1.1rem;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        @media (min-width: 600px) {
+            .cards-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        .target-card {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 3px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .target-card.drag-over {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: #38bdf8;
+            transform: scale(1.05);
+        }
+
+        .target-card.matched {
+            border-style: solid;
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.3);
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .target-card svg {
+            width: 65%;
+            height: 65%;
+            opacity: 0.1;
+            transition: opacity 0.5s, filter 0.5s;
+        }
+
+        .target-card.matched svg {
+            opacity: 1 !important;
+            filter: drop-shadow(0 0 10px currentColor);
+        }
+
+        .label {
+            position: absolute;
+            bottom: 10px;
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .drag-zone {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 30px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            min-height: 110px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 10px;
+        }
+
+        .drag-item {
+            width: 75px;
+            height: 75px;
+            background: #1e293b;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .drag-item:active { cursor: grabbing; transform: scale(0.9); }
+
+        .drag-item svg {
+            width: 70%;
+            height: 70%;
+            display: block;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #a855f7 0%, #38bdf8 100%);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 100px;
+            color: white;
+            font-weight: 800;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 15px;
+            transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
+        }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(168, 85, 247, 0.4); }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-card {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 35px;
+            text-align: center;
+            border: 2px solid rgba(255,255,255,0.1);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal.show { display: flex; }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="main-panel">
+            <h1>SHAKLLAR</h1>
+            <p class="subtitle">Rangli shakllarni uychasiga joylang!</p>
+
+            <div class="stats-bar">
+                <div class="counter">QOLDI: <span id="remText">4</span></div>
+            </div>
+
+            <div id="targetGrid" class="cards-grid"></div>
+            <div id="dragZone" class="drag-zone"></div>
+
+            <button class="btn" onclick="initGame()">Yangi o'yin</button>
+        </div>
+    </div>
+
+    <div id="gameModal" class="modal">
+        <div class="modal-card">
+            <div id="modalIcon" style="font-size: 4rem; margin-bottom: 15px;"></div>
+            <h2 id="modalTitle" style="margin: 0; font-size: 2rem; font-weight: 800;"></h2>
+            <p id="modalMsg" style="color: #94a3b8; margin: 15px 0 25px; font-size: 1.1rem;"></p>
+            <button class="btn" onclick="closeModal()">Yana o'ynash</button>
+        </div>
+    </div>
+
+    <script>
+        const ALL_SHAPES = {
+            kvadrat: { name: "Kvadrat", color: "#ff4757", svg: `<rect x="15" y="15" width="70" height="70" rx="12" fill="currentColor"/>` },
+            doira: { name: "Doira", color: "#2ed573", svg: `<circle cx="50" cy="50" r="40" fill="currentColor"/>` },
+            uchburchak: { name: "Uchburchak", color: "#1e90ff", svg: `<polygon points="50,12 90,85 10,85" fill="currentColor"/>` },
+            romb: { name: "Romb", color: "#ffa502", svg: `<polygon points="50,10 88,50 50,90 12,50" fill="currentColor"/>` },
+            oltiburchak: { name: "Oltiburchak", color: "#9c88ff", svg: `<polygon points="50,8 90,28 90,72 50,92 10,72 10,28" fill="currentColor"/>` },
+            tortburchak: { name: "To'rtburchak", color: "#ff6b81", svg: `<rect x="10" y="28" width="80" height="44" rx="8" fill="currentColor"/>` },
+            oval: { name: "Oval", color: "#70a1ff", svg: `<ellipse cx="50" cy="50" rx="44" ry="28" fill="currentColor"/>` },
+            yulduz: { name: "Yulduz", color: "#eccc68", svg: `<polygon points="50,10 63,38 93,38 69,56 78,85 50,67 22,85 31,56 7,38 37,38" fill="currentColor"/>` }
+        };
+
+        let currentRoundKeys = [];
+        let matches = 0;
+        const SHAPES_PER_ROUND = 4;
+
+        // Tovushlar - win.mp3 to'g'ridan-to'g'ri HTML ga qo'shilgan
+        const winSound = new Audio('data:audio/mpeg;base64,/+MYxAAAAANIAAAAAExBTUUzLjk4LjIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        const errorSound = new Audio('{% static "sounds/error.m4a" %}');
+
+        function playWin() {
+            winSound.currentTime = 0;
+            winSound.play().catch(err => console.log("Audio xatosi:", err));
+        }
+
+        function playError() {
+            errorSound.currentTime = 0;
+            errorSound.play().catch(() => {});
+        }
+
+        /**
+         * OVOZLI O'QISH O'CHIRILDI
+         * Bu funksiya endi hech nima qilmaydi.
+         */
+        function speak(text) {
+            // Robot ovozi o'chirildi
+        }
+
+        function initGame() {
+            matches = 0;
+            const keys = Object.keys(ALL_SHAPES);
+            currentRoundKeys = keys.sort(() => 0.5 - Math.random()).slice(0, SHAPES_PER_ROUND);
+            document.getElementById('remText').innerText = SHAPES_PER_ROUND;
+            render();
+        }
+
+        function render() {
+            const grid = document.getElementById('targetGrid');
+            const zone = document.getElementById('dragZone');
+
+            grid.innerHTML = currentRoundKeys.map(key => `
+                <div class="target-card" id="target-${key}" ondragover="event.preventDefault()">
+                    <svg viewBox="0 0 100 100" style="color: ${ALL_SHAPES[key].color}">${ALL_SHAPES[key].svg}</svg>
+                    <div class="label">${ALL_SHAPES[key].name}</div>
+                </div>
+            `).join('');
+
+            const shuffledForDragging = [...currentRoundKeys].sort(() => 0.5 - Math.random());
+            zone.innerHTML = shuffledForDragging.map(key => `
+                <div class="drag-item" id="drag-${key}" draggable="true" ondragstart="handleDragStart(event, '${key}')">
+                    <svg viewBox="0 0 100 100" style="color: ${ALL_SHAPES[key].color}">${ALL_SHAPES[key].svg}</svg>
+                </div>
+            `).join('');
+
+            document.querySelectorAll('.target-card').forEach(card => {
+                card.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if(!card.classList.contains('matched')) card.classList.add('drag-over');
+                });
+                card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+                card.addEventListener('drop', (e) => {
+                    const key = card.id.replace('target-', '');
+                    handleDrop(e, key);
+                });
+            });
+        }
+
+        function handleDragStart(e, key) {
+            e.dataTransfer.setData("key", key);
+        }
+
+        function handleDrop(e, targetKey) {
+            e.preventDefault();
+            const draggedKey = e.dataTransfer.getData("key");
+            const targetEl = document.getElementById(`target-${targetKey}`);
+            targetEl.classList.remove('drag-over');
+
+            if (draggedKey === targetKey && !targetEl.classList.contains('matched')) {
+                targetEl.classList.add('matched');
+                document.getElementById(`drag-${draggedKey}`).style.visibility = 'hidden';
+                matches++;
+                document.getElementById('remText').innerText = SHAPES_PER_ROUND - matches;
+
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.7 },
+                    colors: [ALL_SHAPES[targetKey].color, '#ffffff', '#ffd700']
+                });
+
+                if (matches === SHAPES_PER_ROUND) {
+                    playWin();
+                    setTimeout(() => showModal(true), 500);
+                }
+            } else if (draggedKey !== targetKey) {
+                showModal(false);
+            }
+        }
+
+        function showModal(isWin) {
+            const m = document.getElementById('gameModal');
+            const t = document.getElementById('modalTitle');
+            const i = document.getElementById('modalIcon');
+            const msg = document.getElementById('modalMsg');
+
+            if (isWin) {
+                t.innerText = "BARAKALLA!";
+                t.style.color = "#2ed573";
+                i.innerText = "🌟";
+                msg.innerText = "Barcha rangli shakllarni topdingiz! Siz judayam aqllisiz!";
+            } else {
+                t.innerText = "OOY, XATO!";
+                t.style.color = "#ff4757";
+                i.innerText = "🤔";
+                msg.innerText = "Shaklning rangi yoki ko'rinishiga yaxshilab e'tibor bering!";
+            }
+            m.classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('show');
+            initGame();
+        }
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>
