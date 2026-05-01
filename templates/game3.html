@@ -1,0 +1,736 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌳 Sehrli Daraxt - Raqamlar O'yini</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(180deg, #87CEEB 0%, #B3E5FC 50%, #E1F5FE 100%);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-wrapper {
+            position: relative;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            width: 90%;
+            max-width: 400px;
+            margin-top: 15px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 20px;
+            padding: 5px;
+            border: 3px solid #4FC3F7;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            height: 20px;
+            background: linear-gradient(90deg, #4FC3F7, #29B6F6, #039BE5);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            box-shadow: 0 4px 10px rgba(3, 155, 229, 0.3);
+        }
+
+        .question-counter {
+            text-align: center;
+            color: #01579B;
+            font-size: 1.3rem;
+            font-weight: 900;
+            margin-top: 8px;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+        }
+
+        /* Tree area with ground */
+        .scene-container {
+            position: relative;
+            width: 450px;
+            height: 400px;
+            margin-top: 10px;
+        }
+
+        .tree-container {
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 0;
+            z-index: 2;
+        }
+
+        .tree-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+        }
+
+        .tree-leaves-area {
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: 50%;
+            z-index: 3;
+        }
+
+        /* Ground with grass texture */
+        .ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(to bottom, #8BC34A 0%, #689F38 40%, #558B2F 100%);
+            border-radius: 50% 50% 0 0 / 40px 40px 0 0;
+            z-index: 1;
+            box-shadow: 0 -15px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        /* Grass blades */
+        .ground::before {
+            content: '🌱 🌿 🍃 🌱 🌿 🍃 🌱 🌿';
+            position: absolute;
+            top: -15px;
+            left: 0;
+            right: 0;
+            font-size: 1.5rem;
+            text-align: center;
+            letter-spacing: 20px;
+            opacity: 0.6;
+        }
+
+        /* Small flowers on ground */
+        .ground-flower {
+            position: absolute;
+            bottom: 20px;
+            font-size: 1.8rem;
+            animation: sway 3s ease-in-out infinite;
+        }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        /* Flowers */
+        .flower {
+            position: absolute;
+            font-size: 40px;
+            animation: bloom 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            pointer-events: none;
+            z-index: 10;
+            filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.4));
+        }
+
+        @keyframes bloom {
+            0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+            50% { transform: scale(1.4) rotate(20deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        /* Floating clouds */
+        .cloud {
+            position: fixed;
+            font-size: 4rem;
+            opacity: 0.7;
+            animation: floatCloud 25s linear infinite;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .cloud1 { top: 5%; animation-delay: 0s; }
+        .cloud2 { top: 15%; animation-delay: -8s; }
+        .cloud3 { top: 8%; animation-delay: -16s; }
+
+        @keyframes floatCloud {
+            0% { left: -100px; }
+            100% { left: calc(100% + 100px); }
+        }
+
+        /* Decorative elements */
+        .decor-sun {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 4rem;
+            animation: rotate 20s linear infinite;
+            z-index: 1;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .decor-stars {
+            position: fixed;
+            font-size: 1.5rem;
+            animation: twinkle 2s ease-in-out infinite;
+            z-index: 1;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Number buttons */
+        .buttons-wrapper {
+            width: 100%;
+            max-width: 600px;
+            padding: 0 20px 30px;
+            z-index: 10;
+        }
+
+        .number-btn {
+            height: 75px;
+            font-size: 2.2rem;
+            font-weight: 900;
+            font-family: 'Fredoka One', cursive;
+            border-radius: 20px;
+            border: 4px solid white;
+            background: linear-gradient(135deg, #42A5F5 0%, #1976D2 100%);
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 8px 0 #1565C0, 0 15px 25px rgba(25, 118, 210, 0.4);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .number-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 11px 0 #1565C0, 0 20px 30px rgba(25, 118, 210, 0.5);
+            background: linear-gradient(135deg, #64B5F6 0%, #2196F3 100%);
+        }
+
+        .number-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 3px 0 #1565C0, 0 5px 10px rgba(25, 118, 210, 0.3);
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+            background: linear-gradient(135deg, #EF5350 0%, #D32F2F 100%) !important;
+            box-shadow: 0 8px 0 #B71C1C, 0 15px 25px rgba(211, 47, 47, 0.4) !important;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80% { transform: translateX(10px); }
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-card {
+            background: linear-gradient(145deg, #fff 0%, #ffeaa7 100%);
+            padding: 50px;
+            border-radius: 50px;
+            text-align: center;
+            border: 6px solid #ff6b6b;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0) rotate(-10deg); }
+            70% { transform: scale(1.1) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .modal-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .win-title { color: #00b894; }
+        .lose-title { color: #ff4757; }
+
+        .modal-text {
+            font-size: 1.3rem;
+            color: #6c5ce7;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        .modal-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #4facfe 100%);
+            border: none;
+            padding: 18px 50px;
+            border-radius: 50px;
+            color: white;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .modal-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Navigation */
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-decoration: none;
+            color: #0277BD;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .nav-btn.settings {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+        }
+
+        .sound-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .sound-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .sound-toggle.muted {
+            opacity: 0.5;
+        }
+
+        /* Instruction */
+        .instruction-box {
+            background: linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%);
+            padding: 25px 50px;
+            border-radius: 35px;
+            border: 4px solid #4FC3F7;
+            box-shadow: 0 15px 40px rgba(79, 195, 247, 0.3);
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .instruction-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            color: #0277BD;
+            margin-bottom: 10px;
+        }
+
+        .target-number {
+            display: inline-block;
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 20px rgba(245, 124, 0, 0.4);
+            border: 4px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <div class="nav-bar">
+        <a href="/" class="nav-btn">
+            🏠 Bosh sahifa
+        </a>
+        <a href="/settings/" class="nav-btn settings">
+            ⚙️ Sozlamalar
+        </a>
+    </div>
+
+    <!-- Clouds -->
+    <div class="cloud cloud1">☁️</div>
+    <div class="cloud cloud2">☁️</div>
+    <div class="cloud cloud3">☁️</div>
+    
+    <!-- Sun -->
+    <div class="decor-sun">☀️</div>
+    
+    <!-- Stars -->
+    <div class="decor-stars" style="top: 15%; left: 5%;">✨</div>
+    <div class="decor-stars" style="top: 25%; right: 8%; animation-delay: 0.5s;">⭐</div>
+    <div class="decor-stars" style="top: 60%; left: 3%; animation-delay: 1s;">✨</div>
+    <div class="decor-stars" style="top: 45%; right: 5%; animation-delay: 1.5s;">⭐</div>
+
+    <div class="game-wrapper">
+        <!-- Progress bar -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+        </div>
+        <div class="question-counter" id="questionCounter">Savol: 0 / 5</div>
+
+        <!-- Instruction -->
+        <div class="instruction-box">
+            <div class="instruction-title">🔢 Qaysi raqamni topasan?</div>
+            <div style="margin-top: 15px;">
+                <span class="target-number" id="targetNumber">?</span>
+            </div>
+        </div>
+
+        <!-- Tree scene with ground -->
+        <div class="scene-container">
+            <div class="tree-container">
+                <img src="{% static 'photo/image.png' %}" alt="Sehrli Daraxt" class="tree-image">
+                <div class="tree-leaves-area" id="tree-leaves"></div>
+            </div>
+            <div class="ground">
+                <div class="ground-flower" style="left: 10%;">🌼</div>
+                <div class="ground-flower" style="left: 25%; animation-delay: 0.5s;">🌸</div>
+                <div class="ground-flower" style="left: 70%; animation-delay: 1s;">🌺</div>
+                <div class="ground-flower" style="left: 85%; animation-delay: 1.5s;">🌻</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Number buttons -->
+    <div class="buttons-wrapper">
+        <div class="grid grid-cols-5 gap-3" id="buttons-container">
+            <!-- Buttons generated by JS -->
+        </div>
+    </div>
+
+    <!-- Win/Lose Modal -->
+    <div id="gameModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-icon" id="modalIcon">🏆</div>
+            <h2 class="modal-title win-title" id="modalTitle">BARAKALLA!</h2>
+            <p class="modal-text" id="modalText">Barcha savollarga to'g'ri javob berdingiz!</p>
+            <button class="modal-btn" onclick="restartGame()">🎮 Qayta o'ynash</button>
+        </div>
+    </div>
+
+    <!-- Sound Toggle -->
+    <button class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔊</button>
+
+    <script>
+        const treeLeaves = document.getElementById('tree-leaves');
+        const targetNumberEl = document.getElementById('targetNumber');
+        const questionCounterEl = document.getElementById('questionCounter');
+        const progressBarEl = document.getElementById('progressBar');
+        const buttonsContainer = document.getElementById('buttons-container');
+        const gameModal = document.getElementById('gameModal');
+        const modalIcon = document.getElementById('modalIcon');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalText = document.getElementById('modalText');
+
+        // Flower natural positions
+        const naturalPositions = [
+            {x: 15, y: 25}, {x: 30, y: 15}, {x: 45, y: 10}, {x: 60, y: 15}, {x: 75, y: 25},
+            {x: 20, y: 45}, {x: 35, y: 35}, {x: 50, y: 30}, {x: 65, y: 35}, {x: 80, y: 45},
+            {x: 25, y: 65}, {x: 40, y: 55}, {x: 55, y: 50}, {x: 70, y: 55}, {x: 85, y: 65}
+        ];
+
+        const flowers = ['🌸', '🌺', '🌼', '🌻', '🌹', '🌷', '💐'];
+        
+        let targetNumber = 0;
+        let currentQuestion = 0;
+        let correctAnswers = 0;
+        let gameOver = false;
+        let flowerCount = 0;
+        let soundEnabled = true;
+
+        // Web Audio API for sound effects
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            if (type === 'correct') {
+                // Happy sound
+                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+                oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } else if (type === 'wrong') {
+                // Sad sound
+                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(150, audioContext.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            } else if (type === 'win') {
+                // Victory melody
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioContext.destination);
+                    osc.frequency.setValueAtTime(freq, audioContext.currentTime + i * 0.15);
+                    gain.gain.setValueAtTime(0.3, audioContext.currentTime + i * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + i * 0.15 + 0.3);
+                    osc.start(audioContext.currentTime + i * 0.15);
+                    osc.stop(audioContext.currentTime + i * 0.15 + 0.3);
+                });
+            } else if (type === 'click') {
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+            }
+        }
+
+        function speakNumber(num) {
+            if (!soundEnabled || !window.speechSynthesis) return;
+            const text = `${num} raqamini toping`;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'uz-UZ';
+            utterance.rate = 0.8;
+            utterance.pitch = 1.1;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggle').innerText = soundEnabled ? '🔊' : '🔇';
+            document.getElementById('soundToggle').classList.toggle('muted', !soundEnabled);
+            localStorage.setItem('soundEnabled', soundEnabled);
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('soundEnabled');
+            if (saved !== null) {
+                soundEnabled = saved === 'true';
+                document.getElementById('soundToggle').innerText = soundEnabled ? '🔊' : '🔇';
+                document.getElementById('soundToggle').classList.toggle('muted', !soundEnabled);
+            }
+        }
+
+        // Generate new target number
+        function generateNewTarget() {
+            targetNumber = Math.floor(Math.random() * 10) + 1;
+            targetNumberEl.innerText = targetNumber;
+            // Speak the number
+            setTimeout(() => speakNumber(targetNumber), 500);
+        }
+
+        // Update progress
+        function updateProgress() {
+            const percent = (currentQuestion / 5) * 100;
+            progressBarEl.style.width = percent + '%';
+            questionCounterEl.innerText = `Savol: ${currentQuestion} / 5`;
+        }
+
+        // Add flower to tree
+        function addFlower() {
+            const flower = document.createElement('div');
+            flower.className = 'flower';
+            flower.innerText = flowers[Math.floor(Math.random() * flowers.length)];
+            
+            const posIndex = flowerCount % naturalPositions.length;
+            const pos = naturalPositions[posIndex];
+            const randomOffset = (Math.random() - 0.5) * 15;
+            
+            flower.style.left = (pos.x + randomOffset) + '%';
+            flower.style.top = (pos.y + randomOffset) + '%';
+            flower.style.transform = `rotate(${(Math.random() - 0.5) * 40}deg)`;
+            
+            treeLeaves.appendChild(flower);
+            flowerCount++;
+        }
+
+        // Show win modal
+        function showWinModal() {
+            modalIcon.innerText = '🏆🎉';
+            modalTitle.innerText = 'BARAKALLA!';
+            modalTitle.className = 'modal-title win-title';
+            modalText.innerText = 'Barcha 5 savolga to\'g\'ri javob berdingiz! Siz ajoyib o\'yinchi!';
+            gameModal.classList.add('show');
+            
+            // Confetti
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff']
+            });
+        }
+
+        // Show lose modal
+        function showLoseModal() {
+            modalIcon.innerText = '😢💔';
+            modalTitle.innerText = 'OY, MAG\'LUBIYAT!';
+            modalTitle.className = 'modal-title lose-title';
+            modalText.innerText = 'Bitta xato! Qayta urinib ko\'ring, siz albatta osonlashtirasiz!';
+            gameModal.classList.add('show');
+        }
+
+        // Handle answer
+        function handleAnswer(selectedNumber, btn) {
+            if (gameOver) return;
+
+            playSound('click');
+            currentQuestion++;
+            updateProgress();
+
+            if (selectedNumber === targetNumber) {
+                // Correct answer
+                playSound('correct');
+                correctAnswers++;
+                addFlower();
+                
+                if (currentQuestion >= 5) {
+                    // Game complete - WIN
+                    gameOver = true;
+                    playSound('win');
+                    setTimeout(showWinModal, 500);
+                } else {
+                    // Continue to next question
+                    setTimeout(() => {
+                        generateNewTarget();
+                    }, 500);
+                }
+            } else {
+                // Wrong answer - immediate LOSE
+                playSound('wrong');
+                gameOver = true;
+                btn.classList.add('shake');
+                setTimeout(() => {
+                    btn.classList.remove('shake');
+                    showLoseModal();
+                }, 500);
+            }
+        }
+
+        // Restart game
+        function restartGame() {
+            gameModal.classList.remove('show');
+            currentQuestion = 0;
+            correctAnswers = 0;
+            gameOver = false;
+            flowerCount = 0;
+            treeLeaves.innerHTML = '';
+            updateProgress();
+            generateNewTarget();
+        }
+
+        // Create buttons
+        function createButtons() {
+            buttonsContainer.innerHTML = '';
+            for (let i = 1; i <= 10; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'number-btn';
+                btn.innerText = i;
+                
+                btn.onclick = () => handleAnswer(i, btn);
+                
+                buttonsContainer.appendChild(btn);
+            }
+        }
+
+        // Initialize game
+        window.onload = () => {
+            loadSettings();
+            createButtons();
+            generateNewTarget();
+            updateProgress();
+        };
+    </script>
+</body>
+</html>

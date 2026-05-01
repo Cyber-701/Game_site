@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚙️ Sozlamalar - Bolalar O'yinlari</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .settings-container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 40px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        }
+
+        .settings-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .settings-icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        .settings-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .setting-item {
+            background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s;
+        }
+
+        .setting-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .setting-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .setting-icon {
+            font-size: 2rem;
+        }
+
+        .setting-text h3 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .setting-text p {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        /* Toggle Switch */
+        .toggle {
+            position: relative;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .volume-slider {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            color: white;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 0 10px 25px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 15px 35px rgba(245, 87, 108, 0.5);
+        }
+
+        .version {
+            text-align: center;
+            margin-top: 30px;
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        .saved-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: 900;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .saved-message.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="saved-message" id="savedMsg">✅ Sozlamalar saqlandi!</div>
+
+    <div class="settings-container">
+        <div class="settings-header">
+            <div class="settings-icon">⚙️</div>
+            <h1 class="settings-title">SOZLAMALAR</h1>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-info">
+                <div class="setting-icon">🔊</div>
+                <div class="setting-text">
+                    <h3>Ovoz</h3>
+                    <p>O'yin ovozlarini yoqish/o'chirish</p>
+                </div>
+            </div>
+            <label class="toggle">
+                <input type="checkbox" id="soundToggle" checked onchange="updateSetting('sound', this.checked)">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-info">
+                <div class="setting-icon">🎵</div>
+                <div class="setting-text">
+                    <h3>Fon Musiqasi</h3>
+                    <p>Fon musiqasini yoqish/o'chirish</p>
+                </div>
+            </div>
+            <label class="toggle">
+                <input type="checkbox" id="musicToggle" onchange="updateSetting('music', this.checked)">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item" style="flex-direction: column; align-items: stretch;">
+            <div class="setting-info" style="margin-bottom: 10px;">
+                <div class="setting-icon">🔉</div>
+                <div class="setting-text">
+                    <h3>Ovoz Balandligi</h3>
+                    <p id="volumeValue">50%</p>
+                </div>
+            </div>
+            <div class="volume-slider">
+                <input type="range" id="volumeSlider" min="0" max="100" value="50" onchange="updateVolume(this.value)">
+            </div>
+        </div>
+
+        <button class="btn" onclick="saveSettings()">💾 Saqlash</button>
+        <button class="btn btn-secondary" onclick="goHome()">🏠 Bosh Sahifa</button>
+
+        <div class="version">Versiya 1.0.0 - MVP</div>
+    </div>
+
+    <script>
+        let settings = {
+            sound: true,
+            music: false,
+            volume: 50
+        };
+
+        // Load settings from localStorage
+        function loadSettings() {
+            const saved = localStorage.getItem('gameSettings');
+            if (saved) {
+                settings = JSON.parse(saved);
+                document.getElementById('soundToggle').checked = settings.sound;
+                document.getElementById('musicToggle').checked = settings.music;
+                document.getElementById('volumeSlider').value = settings.volume;
+                document.getElementById('volumeValue').innerText = settings.volume + '%';
+            }
+
+            // Also check individual sound setting from games
+            const soundEnabled = localStorage.getItem('soundEnabled');
+            if (soundEnabled !== null) {
+                settings.sound = soundEnabled === 'true';
+                document.getElementById('soundToggle').checked = settings.sound;
+            }
+        }
+
+        function updateSetting(key, value) {
+            settings[key] = value;
+        }
+
+        function updateVolume(value) {
+            settings.volume = value;
+            document.getElementById('volumeValue').innerText = value + '%';
+        }
+
+        function saveSettings() {
+            localStorage.setItem('gameSettings', JSON.stringify(settings));
+            localStorage.setItem('soundEnabled', settings.sound);
+            
+            // Show saved message
+            const msg = document.getElementById('savedMsg');
+            msg.classList.add('show');
+            setTimeout(() => msg.classList.remove('show'), 2000);
+        }
+
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        // Load settings on page load
+        window.onload = loadSettings;
+    </script>
+</body>
+</html>

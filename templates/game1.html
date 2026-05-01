@@ -199,6 +199,72 @@
 
         .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(168, 85, 247, 0.4); }
 
+        /* Navigation */
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-decoration: none;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .nav-btn.settings {
+            background: linear-gradient(135deg, #a855f7, #38bdf8);
+            color: white;
+        }
+
+        .sound-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .sound-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .sound-toggle.muted {
+            opacity: 0.5;
+        }
+
         /* Modal */
         .modal {
             position: fixed;
@@ -225,8 +291,17 @@
     </style>
 </head>
 <body>
+    <!-- Navigation -->
+    <div class="nav-bar">
+        <a href="/" class="nav-btn">
+            🏠 Bosh sahifa
+        </a>
+        <a href="/settings/" class="nav-btn settings">
+            ⚙️ Sozlamalar
+        </a>
+    </div>
 
-    <div class="game-container">
+    <div class="game-container" style="padding-top: 80px;">
         <div class="main-panel">
             <h1>SHAKLLAR</h1>
             <p class="subtitle">Rangli shakllarni uychasiga joylang!</p>
@@ -251,7 +326,35 @@
         </div>
     </div>
 
+    <button class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔊</button>
+
     <script>
+        let soundEnabled = true;
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggle').innerText = soundEnabled ? '🔊' : '🔇';
+            document.getElementById('soundToggle').classList.toggle('muted', !soundEnabled);
+            localStorage.setItem('soundEnabled', soundEnabled);
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('soundEnabled');
+            if (saved !== null) {
+                soundEnabled = saved === 'true';
+                document.getElementById('soundToggle').innerText = soundEnabled ? '🔊' : '🔇';
+                document.getElementById('soundToggle').classList.toggle('muted', !soundEnabled);
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            // Use existing sound functions
+            if (type === 'win') playWin();
+            if (type === 'clap') playClap();
+            if (type === 'error') playError();
+        }
+
         const ALL_SHAPES = {
             kvadrat: { name: "Kvadrat", color: "#ff4757", svg: `<rect x="15" y="15" width="70" height="70" rx="12" fill="currentColor"/>` },
             doira: { name: "Doira", color: "#2ed573", svg: `<circle cx="50" cy="50" r="40" fill="currentColor"/>` },
@@ -394,7 +497,10 @@
             initGame();
         }
 
-        window.onload = initGame;
+        window.onload = () => {
+            loadSettings();
+            initGame();
+        };
     </script>
 </body>
 </html>

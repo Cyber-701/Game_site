@@ -8,3 +8,12 @@ def game1(request):
 
 def game2(request):
     return render(request, 'game2.html')
+
+def game3(request):
+    return render(request, 'game3.html')
+
+def settings(request):
+    return render(request, 'settings.html')
+
+def home(request):
+    return render(request, 'home.html')
