@@ -269,11 +269,17 @@
 
         // Tovushlar
         const winSound = new Audio('{% static "sounds/win.mp3" %}'); 
+        const clapSound = new Audio('https://www.myinstants.com/media/sounds/applause-8.mp3');
         const errorSound = new Audio('{% static "sounds/error.m4a" %}'); 
 
         function playWin() {
             winSound.currentTime = 0;
             winSound.play().catch(err => console.log("Audio xatosi:", err));
+        }
+
+        function playClap() {
+            clapSound.currentTime = 0;
+            clapSound.play().catch(() => {});
         }
 
         function playError() {
@@ -339,6 +345,8 @@
             targetEl.classList.remove('drag-over');
 
             if (draggedKey === targetKey && !targetEl.classList.contains('matched')) {
+                // To'g'ri topildi - QARSAK CHALISH
+                playClap();
                 targetEl.classList.add('matched');
                 document.getElementById(`drag-${draggedKey}`).style.visibility = 'hidden';
                 matches++;

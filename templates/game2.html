@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="uz">
+{% load static %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -266,9 +267,15 @@
         let matches = 0;
         const SHAPES_PER_ROUND = 4;
 
-        // Tovushlar uchun audio obyektlari
+        // Tovushlar
+        const winSound = new Audio('{% static "sounds/win.mp3" %}'); 
         const clapSound = new Audio('https://www.myinstants.com/media/sounds/applause-8.mp3');
-        const errorSound = new Audio('https://www.myinstants.com/media/sounds/wrong-answer-126515.mp3');
+        const errorSound = new Audio('{% static "sounds/error.m4a" %}'); 
+
+        function playWin() {
+            winSound.currentTime = 0;
+            winSound.play().catch(err => console.log("Audio xatosi:", err));
+        }
 
         function playClap() {
             clapSound.currentTime = 0;
@@ -280,17 +287,18 @@
             errorSound.play().catch(() => {});
         }
 
+        /**
+         * OVOZLI O'QISH O'CHIRILDI
+         * Bu funksiya endi hech nima qilmaydi.
+         */
         function speak(text) {
-            const m = new SpeechSynthesisUtterance(text);
-            m.lang = 'uz-UZ';
-            window.speechSynthesis.speak(m);
+            // Robot ovozi o'chirildi
         }
 
         function initGame() {
             matches = 0;
             const keys = Object.keys(ALL_SHAPES);
             currentRoundKeys = keys.sort(() => 0.5 - Math.random()).slice(0, SHAPES_PER_ROUND);
-            
             document.getElementById('remText').innerText = SHAPES_PER_ROUND;
             render();
         }
@@ -300,8 +308,7 @@
             const zone = document.getElementById('dragZone');
 
             grid.innerHTML = currentRoundKeys.map(key => `
-                <div class="target-card" id="target-${key}" 
-                     ondragover="event.preventDefault()">
+                <div class="target-card" id="target-${key}" ondragover="event.preventDefault()">
                     <svg viewBox="0 0 100 100" style="color: ${ALL_SHAPES[key].color}">${ALL_SHAPES[key].svg}</svg>
                     <div class="label">${ALL_SHAPES[key].name}</div>
                 </div>
@@ -353,10 +360,10 @@
                 });
 
                 if (matches === SHAPES_PER_ROUND) {
+                    playWin();
                     setTimeout(() => showModal(true), 500);
                 }
             } else if (draggedKey !== targetKey) {
-                // Xato qilindi
                 playError();
                 showModal(false);
             }
@@ -378,7 +385,6 @@
                 t.style.color = "#ff4757";
                 i.innerText = "🤔";
                 msg.innerText = "Shaklning rangi yoki ko'rinishiga yaxshilab e'tibor bering!";
-                speak("Bu shakl uychasiga mos emas!");
             }
             m.classList.add('show');
         }
