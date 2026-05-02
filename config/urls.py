@@ -26,4 +26,7 @@ urlpatterns = [
 
 # Static fayllarni DEBUG rejimda xizmat qilish
 if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    from pathlib import Path
+    # Serve from static directory directly (not staticfiles)
+    static_dir = Path(__file__).resolve().parent.parent / 'static'
+    urlpatterns += static(settings.STATIC_URL, document_root=str(static_dir))

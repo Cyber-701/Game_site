@@ -35,6 +35,62 @@
             flex: 1;
         }
 
+        /* Main content area - tree left, question right */
+        .main-content {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 1200px;
+            gap: 40px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+
+        /* Left side - Tree */
+        .tree-section {
+            flex: 1.5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            min-width: 0;
+        }
+
+        /* Right side - Question */
+        .question-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+        }
+
+        /* Responsive - mobile: stack vertically */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .tree-section {
+                flex: none;
+                width: 100%;
+            }
+            
+            .question-section {
+                flex: none;
+                width: 100%;
+            }
+            
+            .scene-container {
+                width: 90vw;
+                height: 50vh;
+            }
+        }
+
         /* Progress bar */
         .progress-container {
             width: 90%;
@@ -64,18 +120,21 @@
             text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
         }
 
-        /* Tree area with ground */
+        /* Tree area with ground - 70% of screen */
         .scene-container {
             position: relative;
-            width: 450px;
-            height: 400px;
-            margin-top: 10px;
+            width: 70vw;
+            height: 65vh;
+            max-width: 800px;
+            max-height: 600px;
+            min-width: 300px;
+            min-height: 250px;
         }
 
         .tree-container {
             position: absolute;
-            width: 350px;
-            height: 350px;
+            width: 100%;
+            height: 90%;
             left: 50%;
             transform: translateX(-50%);
             top: 0;
@@ -138,14 +197,14 @@
             50% { transform: rotate(5deg); }
         }
 
-        /* Flowers */
+        /* Cherry Blossom Flowers */
         .flower {
             position: absolute;
-            font-size: 40px;
+            font-size: 45px;
             animation: bloom 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
             pointer-events: none;
             z-index: 10;
-            filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.4));
+            filter: drop-shadow(2px 4px 8px rgba(255, 105, 180, 0.5));
         }
 
         @keyframes bloom {
@@ -390,35 +449,37 @@
             opacity: 0.5;
         }
 
-        /* Instruction */
+        /* Instruction - now on right side */
         .instruction-box {
-            background: linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%);
-            padding: 25px 50px;
+            background: linear-gradient(145deg, #fff 0%, #E3F2FD 100%);
             border-radius: 35px;
-            border: 4px solid #4FC3F7;
-            box-shadow: 0 15px 40px rgba(79, 195, 247, 0.3);
-            margin-top: 15px;
+            padding: 30px 50px;
             text-align: center;
+            border: 5px solid #4FC3F7;
+            box-shadow: 0 15px 40px rgba(79, 195, 247, 0.4);
+            max-width: 450px;
         }
 
         .instruction-title {
             font-family: 'Fredoka One', cursive;
-            font-size: 2rem;
+            font-size: 2.2rem;
             color: #0277BD;
-            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.5);
+            margin-bottom: 15px;
         }
 
         .target-number {
+            font-family: 'Fredoka One', cursive;
+            font-size: 7rem;
+            color: #FF6F00;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.2);
             display: inline-block;
-            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
-            color: white;
-            padding: 15px 40px;
+            animation: pulse 2s ease-in-out infinite;
+            background: linear-gradient(135deg, #FFE0B2 0%, #FFCC02 100%);
             border-radius: 25px;
-            font-size: 2.5rem;
-            font-weight: 900;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            box-shadow: 0 8px 20px rgba(245, 124, 0, 0.4);
-            border: 4px solid #fff;
+            padding: 15px 60px;
+            border: 5px solid #FF8F00;
+            box-shadow: 0 10px 30px rgba(255, 111, 0, 0.3);
         }
     </style>
 </head>
@@ -454,25 +515,32 @@
         </div>
         <div class="question-counter" id="questionCounter">Savol: 0 / 5</div>
 
-        <!-- Instruction -->
-        <div class="instruction-box">
-            <div class="instruction-title">🔢 Qaysi raqamni topasan?</div>
-            <div style="margin-top: 15px;">
-                <span class="target-number" id="targetNumber">?</span>
+        <!-- Main content: Tree left, Question right -->
+        <div class="main-content">
+            <!-- Left side - Tree -->
+            <div class="tree-section">
+                <div class="scene-container">
+                    <div class="tree-container">
+                        <img src="{% static 'photo/image.png' %}" alt="Sehrli Daraxt" class="tree-image">
+                        <div class="tree-leaves-area" id="tree-leaves"></div>
+                    </div>
+                    <div class="ground">
+                        <div class="ground-flower" style="left: 10%;">🌺</div>
+                        <div class="ground-flower" style="left: 25%; animation-delay: 0.5s;">🌸</div>
+                        <div class="ground-flower" style="left: 70%; animation-delay: 1s;">🌹</div>
+                        <div class="ground-flower" style="left: 85%; animation-delay: 1.5s;">🌷</div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- Tree scene with ground -->
-        <div class="scene-container">
-            <div class="tree-container">
-                <img src="/static/photo/image.png" alt="Sehrli Daraxt" class="tree-image">
-                <div class="tree-leaves-area" id="tree-leaves"></div>
-            </div>
-            <div class="ground">
-                <div class="ground-flower" style="left: 10%;">🌼</div>
-                <div class="ground-flower" style="left: 25%; animation-delay: 0.5s;">🌸</div>
-                <div class="ground-flower" style="left: 70%; animation-delay: 1s;">🌺</div>
-                <div class="ground-flower" style="left: 85%; animation-delay: 1.5s;">🌻</div>
+            <!-- Right side - Question -->
+            <div class="question-section">
+                <div class="instruction-box">
+                    <div class="instruction-title">🔢 Qaysi raqamni topasan?</div>
+                    <div style="margin-top: 15px;">
+                        <span class="target-number" id="targetNumber">?</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -515,7 +583,7 @@
             {x: 25, y: 65}, {x: 40, y: 55}, {x: 55, y: 50}, {x: 70, y: 55}, {x: 85, y: 65}
         ];
 
-        const flowers = ['🌸', '🌺', '🌼', '🌻', '🌹', '🌷', '💐'];
+        const flowers = ['🌸']; // Only cherry blossoms
         
         let targetNumber = 0;
         let currentQuestion = 0;

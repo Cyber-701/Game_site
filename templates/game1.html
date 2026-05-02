@@ -1,6 +1,6 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="uz">
-{% load static %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -371,9 +371,22 @@
         const SHAPES_PER_ROUND = 4;
 
         // Tovushlar
-        const winSound = new Audio('{% static "sounds/win.mp3" %}'); 
+        const winSound = new Audio('{% static "sounds/win.mp3" %}');
         const clapSound = new Audio('https://www.myinstants.com/media/sounds/applause-8.mp3');
-        const errorSound = new Audio('{% static "sounds/error.m4a" %}'); 
+        // error.m4a mavjud emas - Web Audio API orqali yasaymiz
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playErrorBeep() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
 
         function playWin() {
             winSound.currentTime = 0;
@@ -386,8 +399,7 @@
         }
 
         function playError() {
-            errorSound.currentTime = 0;
-            errorSound.play().catch(() => {});
+            try { playErrorBeep(); } catch(e) {}
         }
 
         /**
