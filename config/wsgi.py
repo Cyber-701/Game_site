@@ -17,15 +17,11 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
 application = get_wsgi_application()
 
-# Wrap with WhiteNoise for static files
-# Handle both local and Vercel paths
+# Wrap with WhiteNoise for static files (Vercel compatible)
 BASE_DIR = Path(__file__).resolve().parent.parent
-static_root = BASE_DIR / 'staticfiles'
+staticfiles_dir = BASE_DIR / 'staticfiles'
 
-if static_root.exists():
-    application = WhiteNoise(application, root=str(static_root))
+if staticfiles_dir.exists():
+    application = WhiteNoise(application, root=str(staticfiles_dir))
 else:
-    # Fallback for Vercel serverless
-    vercel_static = Path('/var/task/staticfiles')
-    if vercel_static.exists():
-        application = WhiteNoise(application, root=str(vercel_static))
+    application = WhiteNoise(application)

@@ -3,11 +3,7 @@
 
 echo "Building Django project for Vercel..."
 
-# Collect static files
+# Collect static files (Whitenoise will serve them)
 python manage.py collectstatic --noinput
-
-# Copy static files to public directory for Vercel static hosting
-mkdir -p public/static
-cp -r staticfiles/* public/static/
 
 echo "Build complete!"
