@@ -554,11 +554,13 @@
 
     <!-- Win/Lose Modal -->
     <div id="gameModal" class="modal-overlay">
-        <div class="modal-card">
+        <div class="modal-card" id="modalCard">
             <div class="modal-icon" id="modalIcon">🏆</div>
             <h2 class="modal-title win-title" id="modalTitle">BARAKALLA!</h2>
             <p class="modal-text" id="modalText">Barcha savollarga to'g'ri javob berdingiz!</p>
-            <button class="modal-btn" onclick="restartGame()">🎮 Qayta o'ynash</button>
+            <div id="modalButtons">
+                <button class="modal-btn" onclick="restartGame()">🎮 Qayta o'ynash</button>
+            </div>
         </div>
     </div>
 
@@ -588,6 +590,7 @@
         let targetNumber = 0;
         let currentQuestion = 0;
         let correctAnswers = 0;
+        let score = 0;
         let gameOver = false;
         let flowerCount = 0;
         let soundEnabled = true;
@@ -675,9 +678,9 @@
 
         // Update progress
         function updateProgress() {
-            const percent = (currentQuestion / 5) * 100;
+            const percent = ((currentQuestion % 5) / 5) * 100;
             progressBarEl.style.width = percent + '%';
-            questionCounterEl.innerText = `Savol: ${currentQuestion} / 5`;
+            questionCounterEl.innerText = `Yutuqlar: ${score} | Savol: ${currentQuestion % 5} / 5`;
         }
 
         // Add flower to tree
@@ -698,12 +701,22 @@
             flowerCount++;
         }
 
-        // Show win modal
-        function showWinModal() {
+        // Show round win modal
+        function showRoundWinModal() {
+            const modalCard = document.getElementById('modalCard');
+            
             modalIcon.innerText = '🏆🎉';
             modalTitle.innerText = 'BARAKALLA!';
             modalTitle.className = 'modal-title win-title';
-            modalText.innerText = 'Barcha 5 savolga to\'g\'ri javob berdingiz! Siz ajoyib o\'yinchi!';
+            modalText.innerText = `Yutuqlaringiz: ${score}`;
+            
+            document.getElementById('modalButtons').innerHTML = `
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <button class="modal-btn" onclick="nextRound()" style="background: linear-gradient(135deg, #00b894, #38ef7d);">➡️ Keyingisi</button>
+                    <button class="modal-btn" onclick="finishGame()" style="background: linear-gradient(135deg, #e74c3c, #e67e22);">🏁 Tugatish</button>
+                </div>
+            `;
+            
             gameModal.classList.add('show');
             
             // Confetti
@@ -715,12 +728,51 @@
             });
         }
 
+        // Show win modal (original for game complete)
+        function showWinModal() {
+            showRoundWinModal();
+        }
+
         // Show lose modal
         function showLoseModal() {
+            const modalCard = document.getElementById('modalCard');
+            
             modalIcon.innerText = '😢💔';
             modalTitle.innerText = 'OY, MAG\'LUBIYAT!';
             modalTitle.className = 'modal-title lose-title';
-            modalText.innerText = 'Bitta xato! Qayta urinib ko\'ring, siz albatta osonlashtirasiz!';
+            modalText.innerText = 'Bitta xato! Qayta urinib ko\'ring!';
+            
+            document.getElementById('modalButtons').innerHTML = `
+                <button class="modal-btn" onclick="restartGame()" style="background: linear-gradient(135deg, #3498db, #9b59b6);">🔄 Qayta urinish</button>
+            `;
+            
+            gameModal.classList.add('show');
+        }
+
+        function nextRound() {
+            gameModal.classList.remove('show');
+            // Clear flowers and continue
+            gameOver = false;
+            flowerCount = 0;
+            treeLeaves.innerHTML = '';
+            generateNewTarget();
+        }
+
+        function finishGame() {
+            gameModal.classList.remove('show');
+            
+            modalIcon.innerText = '🏆';
+            modalTitle.innerText = 'O\'YIN TUGADI!';
+            modalTitle.className = 'modal-title win-title';
+            modalText.innerText = `Umumiy yutuqlaringiz: ${score}`;
+            
+            document.getElementById('modalButtons').innerHTML = `
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <button class="modal-btn" onclick="restartGame()" style="background: linear-gradient(135deg, #00b894, #38ef7d);">🎮 Yangi o'yin</button>
+                    <a href="/" class="modal-btn" style="background: linear-gradient(135deg, #3498db, #9b59b6); text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">🏠 Bosh sahifa</a>
+                </div>
+            `;
+            
             gameModal.classList.add('show');
         }
 
@@ -738,11 +790,12 @@
                 correctAnswers++;
                 addFlower();
                 
-                if (currentQuestion >= 5) {
-                    // Game complete - WIN
+                if (currentQuestion % 5 === 0) {
+                    // Round complete - show Next/Finish buttons
+                    score++;
                     gameOver = true;
                     playSound('win');
-                    setTimeout(showWinModal, 500);
+                    setTimeout(showRoundWinModal, 500);
                 } else {
                     // Continue to next question
                     setTimeout(() => {
@@ -766,6 +819,7 @@
             gameModal.classList.remove('show');
             currentQuestion = 0;
             correctAnswers = 0;
+            score = 0;
             gameOver = false;
             flowerCount = 0;
             treeLeaves.innerHTML = '';

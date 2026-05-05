@@ -430,17 +430,12 @@
 
             <div id="targetGrid" class="cards-grid"></div>
             <div id="cardsArea" class="cards-area"></div>
-
-            <button class="btn" onclick="initGame()">🎮 Yangi o'yin</button>
         </div>
     </div>
 
     <div id="gameModal" class="modal">
         <div class="modal-card" id="modalCard">
-            <div id="modalIcon" style="font-size: 5rem; margin-bottom: 15px;"></div>
-            <h2 id="modalTitle" style="margin: 0; font-size: 2.2rem; font-weight: 800; font-family: 'Fredoka One', cursive;"></h2>
-            <p id="modalMsg" style="color: #636e72; margin: 20px 0 30px; font-size: 1.2rem; font-weight: 700;"></p>
-            <button class="btn" onclick="closeModal()">🔄 Qayta o'ynash</button>
+            <!-- Content will be set by JavaScript -->
         </div>
     </div>
 
@@ -462,9 +457,10 @@
         let currentRoundKeys = [];
         let matches = 0;
         let gameOver = false;
+        let draggedKey = null;
+        let score = 0;
         const ANIMALS_PER_ROUND = 4;
         let soundEnabled = true;
-        let draggedKey = null;
 
         // Sound effects using Web Audio API
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -530,6 +526,13 @@
 
         function initGame() {
             matches = 0;
+            score = 0;
+            gameOver = false;
+            nextLevel();
+        }
+
+        function nextLevel() {
+            matches = 0;
             gameOver = false;
             const keys = Object.keys(ALL_ANIMALS);
             currentRoundKeys = keys.sort(() => 0.5 - Math.random()).slice(0, ANIMALS_PER_ROUND);
@@ -540,7 +543,7 @@
         function updateProgress() {
             const percent = (matches / ANIMALS_PER_ROUND) * 100;
             document.getElementById('progressBar').style.width = percent + '%';
-            document.getElementById('progressText').innerText = `Juftlashtirilgan: ${matches} / ${ANIMALS_PER_ROUND}`;
+            document.getElementById('progressText').innerText = `Yutuqlar: ${score} | Juftlashtirilgan: ${matches} / ${ANIMALS_PER_ROUND}`;
         }
 
         function render() {
@@ -617,7 +620,9 @@
                 });
 
                 if (matches === ANIMALS_PER_ROUND) {
-                    // Game complete - WIN
+                    // Round complete - WIN
+                    score++;
+                    updateProgress();
                     gameOver = true;
                     playSound('win');
                     setTimeout(() => showWinModal(), 600);
@@ -642,15 +647,17 @@
         function showWinModal() {
             const m = document.getElementById('gameModal');
             const card = document.getElementById('modalCard');
-            const t = document.getElementById('modalTitle');
-            const i = document.getElementById('modalIcon');
-            const msg = document.getElementById('modalMsg');
-
-            card.classList.remove('lose');
-            t.innerText = "BARAKALLA!";
-            t.style.color = "#00b894";
-            i.innerText = "🌟🏆";
-            msg.innerText = "Ajoyib! Barcha hayvonlarni to'g'ri juftlashtirdingiz!";
+            
+            card.innerHTML = `
+                <div id="modalIcon" style="font-size: 5rem; margin-bottom: 15px;">🌟🏆</div>
+                <h2 id="modalTitle" style="margin: 0; font-size: 2.2rem; font-weight: 800; color: #00b894;">BARAKALLA!</h2>
+                <p id="modalMsg" style="color: #555; margin: 15px 0 25px; font-size: 1.2rem;">Yutuqlar: ${score}</p>
+                
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn" onclick="nextRound()" style="background: linear-gradient(135deg, #00b894, #38ef7d);">➡️ Keyingisi</button>
+                    <button class="btn" onclick="finishGame()" style="background: linear-gradient(135deg, #e74c3c, #e67e22);">🏁 Tugatish</button>
+                </div>
+            `;
             
             // Big confetti
             confetti({
@@ -666,22 +673,41 @@
         function showLoseModal() {
             const m = document.getElementById('gameModal');
             const card = document.getElementById('modalCard');
-            const t = document.getElementById('modalTitle');
-            const i = document.getElementById('modalIcon');
-            const msg = document.getElementById('modalMsg');
-
-            card.classList.add('lose');
-            t.innerText = "OY, MAG'LUBIYAT!";
-            t.style.color = "#e74c3c";
-            i.innerText = "😢�";
-            msg.innerText = "Bitta xato! Qayta urinib ko'ring!";
             
+            card.innerHTML = `
+                <div id="modalIcon" style="font-size: 5rem; margin-bottom: 15px;">😢💔</div>
+                <h2 id="modalTitle" style="margin: 0; font-size: 2.2rem; font-weight: 800; color: #e74c3c;">OY, MAG'LUBIYAT!</h2>
+                <p id="modalMsg" style="color: #555; margin: 15px 0 25px; font-size: 1.2rem;">Bitta xato! Qayta urinib ko'ring!</p>
+                <button class="btn" onclick="initGame()" style="background: linear-gradient(135deg, #3498db, #9b59b6);">🔄 Qayta urinish</button>
+            `;
+            
+            m.classList.add('show');
+        }
+
+        function nextRound() {
+            document.getElementById('gameModal').classList.remove('show');
+            nextLevel();
+        }
+
+        function finishGame() {
+            document.getElementById('gameModal').classList.remove('show');
+            const m = document.getElementById('gameModal');
+            const card = document.getElementById('modalCard');
+            
+            card.innerHTML = `
+                <div style="font-size: 5rem; margin-bottom: 15px;">🏆</div>
+                <h2 style="margin: 0; font-size: 2.2rem; font-weight: 800; color: #e67e22;">O'YIN TUGADI!</h2>
+                <p style="color: #555; margin: 15px 0 25px; font-size: 1.2rem;">Umumiy yutuqlaringiz: ${score}</p>
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn" onclick="initGame()" style="background: linear-gradient(135deg, #00b894, #38ef7d);">🎮 Yangi o'yin</button>
+                    <a href="/" class="btn" style="background: linear-gradient(135deg, #3498db, #9b59b6); text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">🏠 Bosh sahifa</a>
+                </div>
+            `;
             m.classList.add('show');
         }
 
         function closeModal() {
             document.getElementById('gameModal').classList.remove('show');
-            initGame();
         }
 
         window.onload = () => {
